@@ -23,9 +23,6 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
-      - name: Maven Verify
-        run: mvn -B clean verify
-
       - name: Start mongoDB
         run: |
           docker-compose up -d
@@ -37,5 +34,9 @@ jobs:
         run: |
           # restore test database
           docker-compose  exec -T mongodb  mongorestore --drop --gzip import/data
+
       - name: Run migrations
         run: echo 'migration'
+
+      - name: Maven Verify
+        run: mvn -B clean verify
