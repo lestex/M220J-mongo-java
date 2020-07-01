@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [1.8, 1.11]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Java ${{ matrix.java-version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+
+      - name: Start mongoDB
+        run: |
+          docker-compose up -d
+      - name: Find mongo container id
+        run: |
+          # find mongo container id
+          docker cp data `docker ps -q`:/import
+      - name: Restore mongo database
+        run: |
+          # restore test database
+          docker-compose  exec -T mongodb  mongorestore --drop --gzip import/data
+
+      - name: Run migrations
+        run: echo 'migration'
+
+      - name: Maven Verify
+        run: mvn -B clean verify
